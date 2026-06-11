@@ -492,6 +492,9 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Color _shellHeaderBackgroundForIndex(int index) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return const Color(0xFF090A0C);
+    }
     return switch (index) {
       1 => Colors.grey.shade50,
       3 => const Color(0xFFF2F2F7),
@@ -500,6 +503,9 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Color _shellTabBackgroundForIndex(int index) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return const Color(0xFF090A0C);
+    }
     return switch (index) {
       1 => Colors.grey.shade50,
       3 => const Color(0xFFF2F2F7),
@@ -867,7 +873,7 @@ class _HomeScreenState extends State<HomeScreen>
       /// Keep shell nav + overlays pinned; keyboard draws on top instead of
       /// compressing the body and floating bars into the middle of the screen.
       resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           AnimatedBuilder(
@@ -1149,7 +1155,7 @@ class _HomeScreenState extends State<HomeScreen>
             left: 0,
             right: 0,
             height: listTopPadding,
-            child: const ColoredBox(color: Colors.white),
+            child: ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(

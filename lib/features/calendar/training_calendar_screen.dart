@@ -956,7 +956,7 @@ class _TrainingCalendarScreenState extends State<TrainingCalendarScreen>
 
     return Scaffold(
       /// Match [HomeScreen] shell scaffold (`Colors.white`).
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         bottom: false,
         child: Stack(

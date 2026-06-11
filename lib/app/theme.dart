@@ -233,6 +233,15 @@ const Color kRecoveryMidColor = Color(0xFFFF9F0A);
 const double kPagePadding = 12.0;
 const double kIslandHeaderGap = 20.0;
 
+Color liftCanvasColor(
+  BuildContext context, {
+  Color light = const Color(0xFFF7F7F8),
+}) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF090A0C)
+      : light;
+}
+
 /// Top [LiftIslandHeader] / frosted bars that match the shell header chrome.
 const double kLiftIslandHeaderHeight = 56.0;
 
@@ -337,9 +346,21 @@ TextTheme _reduceTextTheme(TextTheme textTheme, [double delta = 1]) {
   );
 }
 
-ThemeData buildLiftTheme() {
+ThemeData buildLiftTheme([Brightness brightness = Brightness.light]) {
+  final isDark = brightness == Brightness.dark;
+  final seed = isDark ? const Color(0xFFE8EAED) : kAccentColor;
+  final scaffold = isDark ? const Color(0xFF090A0C) : Colors.white;
+  final surface = isDark ? const Color(0xFF15171B) : Colors.white;
+  final onSurface = isDark ? const Color(0xFFF4F5F7) : kAccentColor;
+  final muted = isDark ? const Color(0xFFA9B1BA) : kAccentMid;
   final baseTheme = ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: kAccentColor),
+    brightness: brightness,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+      surface: surface,
+      onSurface: onSurface,
+    ),
     useMaterial3: true,
   );
   final appTextTheme = _reduceTextTheme(
@@ -352,9 +373,9 @@ ThemeData buildLiftTheme() {
   );
   return baseTheme.copyWith(
     textTheme: appTextTheme,
-    scaffoldBackgroundColor: Colors.white,
-    dividerTheme: const DividerThemeData(
-      color: kLiftDividerColor,
+    scaffoldBackgroundColor: scaffold,
+    dividerTheme: DividerThemeData(
+      color: isDark ? Colors.white.withValues(alpha: 0.10) : kLiftDividerColor,
       thickness: 1,
       space: 1,
     ),
@@ -374,10 +395,10 @@ ThemeData buildLiftTheme() {
     focusColor: Colors.transparent,
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: kAccentColor,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: kAccentColor.withValues(alpha: 0.26),
-        disabledForegroundColor: Colors.white.withValues(alpha: 0.66),
+        backgroundColor: isDark ? const Color(0xFFF3F4F6) : kAccentColor,
+        foregroundColor: isDark ? kAccentDark : Colors.white,
+        disabledBackgroundColor: onSurface.withValues(alpha: 0.20),
+        disabledForegroundColor: muted.withValues(alpha: 0.66),
         elevation: 0,
         shadowColor: Colors.transparent,
         overlayColor: Colors.transparent,
@@ -388,10 +409,10 @@ ThemeData buildLiftTheme() {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: kAccentColor,
-        backgroundColor: kAccentColor.withValues(alpha: 0.06),
-        disabledForegroundColor: Colors.grey.shade400,
-        side: BorderSide(color: kAccentColor.withValues(alpha: 0.26)),
+        foregroundColor: onSurface,
+        backgroundColor: onSurface.withValues(alpha: isDark ? 0.08 : 0.06),
+        disabledForegroundColor: muted.withValues(alpha: 0.58),
+        side: BorderSide(color: onSurface.withValues(alpha: 0.26)),
         elevation: 0,
         shadowColor: Colors.transparent,
         overlayColor: Colors.transparent,
@@ -402,8 +423,8 @@ ThemeData buildLiftTheme() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: kAccentColor,
-        disabledForegroundColor: Colors.grey.shade400,
+        foregroundColor: onSurface,
+        disabledForegroundColor: muted.withValues(alpha: 0.58),
         overlayColor: Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: kIosControlBorderRadius),
@@ -416,23 +437,23 @@ ThemeData buildLiftTheme() {
     ),
     iconButtonTheme: IconButtonThemeData(
       style: IconButton.styleFrom(
-        foregroundColor: kAccentColor,
-        backgroundColor: kAccentColor.withValues(alpha: 0.08),
-        disabledForegroundColor: Colors.grey.shade400,
-        side: BorderSide(color: kAccentColor.withValues(alpha: 0.24)),
+        foregroundColor: onSurface,
+        backgroundColor: onSurface.withValues(alpha: 0.08),
+        disabledForegroundColor: muted.withValues(alpha: 0.58),
+        side: BorderSide(color: onSurface.withValues(alpha: 0.24)),
         minimumSize: const Size.square(46),
         overlayColor: Colors.transparent,
         padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: kIosControlBorderRadius),
       ),
     ),
-    dialogTheme: const DialogThemeData(
-      backgroundColor: Colors.white,
+    dialogTheme: DialogThemeData(
+      backgroundColor: surface,
       surfaceTintColor: Colors.transparent,
     ),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: Colors.white,
-      modalBackgroundColor: Colors.white,
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: surface,
+      modalBackgroundColor: surface,
       surfaceTintColor: Colors.transparent,
     ),
     snackBarTheme: SnackBarThemeData(

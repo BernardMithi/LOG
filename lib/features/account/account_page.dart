@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lift/app/app_appearance.dart';
 import 'package:lift/app/app_bootstrap.dart';
 import 'package:lift/app/theme.dart';
 import 'package:lift/features/calendar/training_calendar_screen.dart';
@@ -20,6 +21,30 @@ const Color _kAccountAccentSoft = Color(0xFFF1F5F8);
 const Color _kAccountConnected = Color(0xFF4E7568);
 const Color _kAccountConnectedSoft = Color(0xFFEAF3EE);
 const Color _kAccountIndependentSoft = Color(0xFFF5F6F9);
+
+Color _accountCanvas(BuildContext context) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF090A0C)
+      : _kAccountCanvas;
+}
+
+Color _accountTextStrong(BuildContext context) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFFF3F4F6)
+      : const Color(0xFF171717);
+}
+
+Color _accountTextMuted(BuildContext context) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFFA9B1BA)
+      : Colors.grey.shade600;
+}
+
+Color _accountSoftSurface(BuildContext context) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF202329)
+      : const Color(0xFFF7F8FA);
+}
 
 enum UserMode { gymConnected, independent }
 
@@ -252,7 +277,7 @@ class _AccountPageState extends State<AccountPage> {
       MaterialPageRoute<void>(
         builder:
             (_) => Scaffold(
-              backgroundColor: _kAccountCanvas,
+              backgroundColor: _accountCanvas(context),
               body: WorkoutTemplatesFlow(
                 showRootBack: true,
                 onRootBack: () => Navigator.of(context).pop(),
@@ -293,8 +318,91 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
+  Future<void> _openAppearanceSheet() async {
+    final appearance = LiftAppearance.of(context);
+    final selected = await showModalBottomSheet<ThemeMode>(
+      context: context,
+      useSafeArea: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        const modes = <ThemeMode>[
+          ThemeMode.system,
+          ThemeMode.light,
+          ThemeMode.dark,
+        ];
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: SectionBoundary(
+              borderRadius: 28,
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Appearance',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                      color: _accountTextStrong(sheetContext),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Choose how LIFT looks on this device.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _accountTextMuted(sheetContext),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  for (final mode in modes)
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pop(sheetContext, mode),
+                        borderRadius: BorderRadius.circular(kIosControlRadius),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  liftThemeModeLabel(mode),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: _accountTextStrong(sheetContext),
+                                  ),
+                                ),
+                              ),
+                              if (appearance.themeMode == mode)
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: _accountTextStrong(sheetContext),
+                                  size: 22,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    if (selected == null) return;
+    await appearance.setThemeMode(selected);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final appearance = LiftAppearance.of(context);
+    final canvas = _accountCanvas(context);
     final platform = Theme.of(context).platform;
     final profile =
         widget.user ??
@@ -313,6 +421,12 @@ class _AccountPageState extends State<AccountPage> {
     final insightRows = _buildInsightRows(platform);
     final rewardsRows = _buildRewardsRows(profile);
     final accountRows = _buildAccountRows();
+    final appearanceRow = SettingsRowModel(
+      title: 'Appearance',
+      subtitle: 'Use system theme or choose light or dark mode',
+      icon: PhosphorIconsRegular.moon,
+      value: liftThemeModeLabel(appearance.themeMode),
+    );
 
     // Same “floating island” geometry as [HomeScreen]: header is overlaid so
     // the list scrolls under the frosted bar; top padding clears the badges.
@@ -322,7 +436,7 @@ class _AccountPageState extends State<AccountPage> {
     final topBlurBandHeight = listTopPadding + 88.0;
 
     return Scaffold(
-      backgroundColor: _kAccountCanvas,
+      backgroundColor: canvas,
       body: SafeArea(
         top: false,
         bottom: false,
@@ -408,6 +522,19 @@ class _AccountPageState extends State<AccountPage> {
                           ),
                           SizedBox(height: sectionGap),
                           AccountGroupedCard(
+                            title: 'Appearance',
+                            child: Column(
+                              children: [
+                                AccountSettingsRow(
+                                  model: appearanceRow,
+                                  showDivider: false,
+                                  onTap: _openAppearanceSheet,
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: sectionGap),
+                          AccountGroupedCard(
                             title: 'Account Settings',
                             child: Column(children: _buildRowList(accountRows)),
                           ),
@@ -428,7 +555,7 @@ class _AccountPageState extends State<AccountPage> {
                   scrollController: _scrollController,
                   scrollRampDistance: 120,
                   maxBlurSigma: 16,
-                  topTint: _kAccountCanvas,
+                  topTint: canvas,
                   maxTintOpacity: 0.28,
                 ),
               ),
@@ -559,6 +686,7 @@ class ProfileHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isGymUser = profile.mode == UserMode.gymConnected;
     final gym = profile.gym;
     final note =
@@ -575,11 +703,18 @@ class ProfileHeaderCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            (isGymUser ? _kAccountAccentSoft : _kAccountIndependentSoft),
+            isDark ? const Color(0xFF17191D) : Colors.white,
+            isDark
+                ? const Color(0xFF20242A)
+                : (isGymUser ? _kAccountAccentSoft : _kAccountIndependentSoft),
           ],
         ),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.10)
+                  : Colors.grey.shade200,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -602,10 +737,10 @@ class ProfileHeaderCard extends StatelessWidget {
                   children: [
                     Text(
                       profile.fullName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF171717),
+                        color: _accountTextStrong(context),
                         height: 1.05,
                       ),
                     ),
@@ -614,7 +749,7 @@ class ProfileHeaderCard extends StatelessWidget {
                       profile.handle,
                       style: TextStyle(
                         fontSize: 14.5,
-                        color: Colors.grey.shade600,
+                        color: _accountTextMuted(context),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -647,7 +782,7 @@ class ProfileHeaderCard extends StatelessWidget {
             style: TextStyle(
               fontSize: platform == TargetPlatform.iOS ? 13.5 : 13,
               height: 1.4,
-              color: Colors.grey.shade700,
+              color: _accountTextMuted(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -679,10 +814,10 @@ class AccountGroupedCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF171717),
+              color: _accountTextStrong(context),
             ),
           ),
           if (subtitle != null) ...[
@@ -691,7 +826,7 @@ class AccountGroupedCard extends StatelessWidget {
               subtitle!,
               style: TextStyle(
                 fontSize: 13.5,
-                color: Colors.grey.shade600,
+                color: _accountTextMuted(context),
                 height: 1.35,
               ),
             ),
@@ -721,8 +856,11 @@ class AccountSettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = model.enabled;
-    final foreground = enabled ? const Color(0xFF171717) : Colors.grey.shade400;
-    final subtitleColor = enabled ? Colors.grey.shade600 : Colors.grey.shade400;
+    final foreground =
+        enabled ? _accountTextStrong(context) : _accountTextMuted(context);
+    final subtitleColor =
+        enabled ? _accountTextMuted(context) : _accountTextMuted(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [
@@ -741,14 +879,18 @@ class AccountSettingsRow extends StatelessWidget {
                     decoration: BoxDecoration(
                       color:
                           model.highlighted
-                              ? _kAccountAccentSoft
-                              : const Color(0xFFF7F8FA),
+                              ? (isDark
+                                  ? const Color(0xFF26303A)
+                                  : _kAccountAccentSoft)
+                              : _accountSoftSurface(context),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color:
                             model.highlighted
                                 ? _kAccountAccent.withValues(alpha: 0.14)
-                                : Colors.black.withValues(alpha: 0.05),
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.05)),
                       ),
                     ),
                     child: Center(
@@ -811,14 +953,14 @@ class AccountSettingsRow extends StatelessWidget {
                         color:
                             model.highlighted
                                 ? _kAccountAccent
-                                : Colors.grey.shade600,
+                                : _accountTextMuted(context),
                       ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: Colors.grey.shade400,
+                    color: _accountTextMuted(context).withValues(alpha: 0.72),
                     size: 22,
                   ),
                 ],
@@ -844,13 +986,22 @@ class CompactStatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       constraints: const BoxConstraints(minWidth: 92),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.76),
+        color:
+            isDark
+                ? const Color(0xFF202329).withValues(alpha: 0.82)
+                : Colors.white.withValues(alpha: 0.76),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+        border: Border.all(
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.06),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -858,10 +1009,10 @@ class CompactStatItem extends StatelessWidget {
         children: [
           Text(
             stat.value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF171717),
+              color: _accountTextStrong(context),
             ),
           ),
           const SizedBox(height: 2),
@@ -870,7 +1021,7 @@ class CompactStatItem extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+              color: _accountTextMuted(context),
             ),
           ),
         ],
@@ -920,6 +1071,7 @@ class _ActionItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final connectedTone = action.connected;
     final highlighted = action.highlighted;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: Colors.transparent,
@@ -931,14 +1083,18 @@ class _ActionItemCard extends StatelessWidget {
           decoration: BoxDecoration(
             color:
                 highlighted
-                    ? _kAccountAccentSoft
-                    : Colors.white.withValues(alpha: 0.82),
+                    ? (isDark ? const Color(0xFF26303A) : _kAccountAccentSoft)
+                    : (isDark
+                        ? const Color(0xFF202329).withValues(alpha: 0.82)
+                        : Colors.white.withValues(alpha: 0.82)),
             borderRadius: BorderRadius.circular(kIosControlRadius),
             border: Border.all(
               color:
                   highlighted
                       ? _kAccountAccent.withValues(alpha: 0.14)
-                      : Colors.black.withValues(alpha: 0.06),
+                      : (isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06)),
             ),
           ),
           child: Column(
@@ -952,14 +1108,20 @@ class _ActionItemCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color:
                           connectedTone
-                              ? _kAccountConnectedSoft
-                              : Colors.white.withValues(alpha: 0.92),
+                              ? (isDark
+                                  ? const Color(0xFF1C342C)
+                                  : _kAccountConnectedSoft)
+                              : (isDark
+                                  ? const Color(0xFF17191D)
+                                  : Colors.white.withValues(alpha: 0.92)),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color:
                             connectedTone
                                 ? _kAccountConnected.withValues(alpha: 0.14)
-                                : Colors.black.withValues(alpha: 0.06),
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.06)),
                       ),
                     ),
                     child: Center(
@@ -971,7 +1133,7 @@ class _ActionItemCard extends StatelessWidget {
                                 ? _kAccountConnected
                                 : highlighted
                                 ? _kAccountAccent
-                                : const Color(0xFF171717),
+                                : _accountTextStrong(context),
                       ),
                     ),
                   ),
@@ -986,10 +1148,10 @@ class _ActionItemCard extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 action.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF171717),
+                  color: _accountTextStrong(context),
                 ),
               ),
               const SizedBox(height: 4),
@@ -998,7 +1160,7 @@ class _ActionItemCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12.8,
                   height: 1.35,
-                  color: Colors.grey.shade600,
+                  color: _accountTextMuted(context),
                 ),
               ),
             ],
@@ -1017,16 +1179,22 @@ class _ConnectionStateChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final connected = state.connected;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: connected ? _kAccountConnectedSoft : const Color(0xFFF4F5F7),
+        color:
+            connected
+                ? (isDark ? const Color(0xFF1C342C) : _kAccountConnectedSoft)
+                : _accountSoftSurface(context),
         borderRadius: BorderRadius.circular(kIosChipRadius),
         border: Border.all(
           color:
               connected
                   ? _kAccountConnected.withValues(alpha: 0.16)
-                  : Colors.black.withValues(alpha: 0.08),
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08)),
         ),
       ),
       child: Text(
@@ -1034,7 +1202,7 @@ class _ConnectionStateChip extends StatelessWidget {
         style: TextStyle(
           fontSize: 11.8,
           fontWeight: FontWeight.w700,
-          color: connected ? _kAccountConnected : Colors.grey.shade700,
+          color: connected ? _kAccountConnected : _accountTextMuted(context),
         ),
       ),
     );
@@ -1054,15 +1222,16 @@ class _ActionStatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color:
             connected
-                ? _kAccountConnectedSoft
+                ? (isDark ? const Color(0xFF1C342C) : _kAccountConnectedSoft)
                 : highlighted
-                ? _kAccountAccentSoft
-                : const Color(0xFFF4F5F7),
+                ? (isDark ? const Color(0xFF26303A) : _kAccountAccentSoft)
+                : _accountSoftSurface(context),
         borderRadius: BorderRadius.circular(kIosChipRadius),
         border: Border.all(
           color:
@@ -1070,7 +1239,9 @@ class _ActionStatusPill extends StatelessWidget {
                   ? _kAccountConnected.withValues(alpha: 0.16)
                   : highlighted
                   ? _kAccountAccent.withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: 0.08),
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08)),
         ),
       ),
       child: Text(
@@ -1083,7 +1254,7 @@ class _ActionStatusPill extends StatelessWidget {
                   ? _kAccountConnected
                   : highlighted
                   ? _kAccountAccent
-                  : Colors.grey.shade700,
+                  : _accountTextMuted(context),
         ),
       ),
     );
@@ -1098,25 +1269,34 @@ class _AvatarBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initials = _initialsForName(name);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 74,
       height: 74,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFF7F8FA), Color(0xFFE4EAF0)],
+          colors:
+              isDark
+                  ? const [Color(0xFF262A31), Color(0xFF17191D)]
+                  : const [Color(0xFFF7F8FA), Color(0xFFE4EAF0)],
         ),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+        border: Border.all(
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.06),
+        ),
       ),
       child: Center(
         child: Text(
           initials,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF171717),
+            color: _accountTextStrong(context),
           ),
         ),
       ),
@@ -1132,19 +1312,24 @@ class _InfoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
         color:
             emphasized
-                ? _kAccountAccentSoft
-                : Colors.white.withValues(alpha: 0.82),
+                ? (isDark ? const Color(0xFF26303A) : _kAccountAccentSoft)
+                : (isDark
+                    ? const Color(0xFF202329).withValues(alpha: 0.82)
+                    : Colors.white.withValues(alpha: 0.82)),
         borderRadius: BorderRadius.circular(kIosChipRadius),
         border: Border.all(
           color:
               emphasized
                   ? _kAccountAccent.withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: 0.06),
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.06)),
         ),
       ),
       child: Text(
@@ -1152,7 +1337,7 @@ class _InfoBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: emphasized ? _kAccountAccent : Colors.grey.shade700,
+          color: emphasized ? _kAccountAccent : _accountTextMuted(context),
         ),
       ),
     );

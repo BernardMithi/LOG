@@ -155,6 +155,7 @@ class FrostedControlSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(borderRadius);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         borderRadius: radius,
@@ -174,10 +175,18 @@ class FrostedControlSurface extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: backgroundColor ?? Colors.white.withValues(alpha: 0.74),
+              color:
+                  backgroundColor ??
+                  (isDark
+                      ? const Color(0xFF17191D).withValues(alpha: 0.82)
+                      : Colors.white.withValues(alpha: 0.74)),
               borderRadius: radius,
               border: Border.all(
-                color: borderColor ?? Colors.black.withValues(alpha: 0.08),
+                color:
+                    borderColor ??
+                    (isDark
+                        ? Colors.white.withValues(alpha: 0.10)
+                        : Colors.black.withValues(alpha: 0.08)),
               ),
             ),
             child: Padding(padding: padding, child: child),
@@ -202,6 +211,7 @@ class FrostedIconActionButton extends StatelessWidget {
   }) : assert(icon != null || iconWidget != null);
 
   final IconData? icon;
+
   /// When set (e.g. [MynauiIcon]), used instead of [icon].
   final Widget? iconWidget;
   final VoidCallback onTap;
@@ -213,8 +223,12 @@ class FrostedIconActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final foreground =
-        iconColor ?? (highlighted ? kAccentColor : kLiftIslandOnFrosted);
+        iconColor ??
+        (highlighted
+            ? (isDark ? Colors.white : kAccentColor)
+            : kLiftIslandOnFrosted);
     return LiftPressable(
       onTap: onTap,
       borderRadius: borderRadius,
@@ -222,20 +236,23 @@ class FrostedIconActionButton extends StatelessWidget {
       child: FrostedControlSurface(
         padding: EdgeInsets.zero,
         borderRadius: borderRadius,
-        backgroundColor: Colors.white.withValues(
-          alpha: highlighted ? 0.84 : 0.74,
-        ),
+        backgroundColor:
+            isDark
+                ? const Color(
+                  0xFF17191D,
+                ).withValues(alpha: highlighted ? 0.92 : 0.82)
+                : Colors.white.withValues(alpha: highlighted ? 0.84 : 0.74),
         borderColor:
             highlighted
-                ? kAccentColor.withValues(alpha: 0.18)
-                : Colors.black.withValues(alpha: 0.08),
+                ? foreground.withValues(alpha: 0.18)
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.10)
+                    : Colors.black.withValues(alpha: 0.08)),
         child: SizedBox(
           width: size,
           height: size,
           child: Center(
-            child:
-                iconWidget ??
-                Icon(icon!, color: foreground, size: iconSize),
+            child: iconWidget ?? Icon(icon!, color: foreground, size: iconSize),
           ),
         ),
       ),
@@ -272,24 +289,32 @@ class SectionBoundary extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = customBorderRadius ?? BorderRadius.circular(borderRadius);
     final floatAlpha = floatingBackgroundOpacity ?? 0.72;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? const Color(0xFF15171B) : Colors.white;
     final section = Container(
       padding: padding,
       decoration: BoxDecoration(
         color:
             floating
-                ? Colors.white.withValues(alpha: floatAlpha)
-                : Colors.white,
+                ? baseColor.withValues(alpha: isDark ? 0.88 : floatAlpha)
+                : baseColor,
         borderRadius: radius,
         border: Border.all(
           color:
               floating
-                  ? Colors.grey.shade300.withValues(alpha: 0.6)
-                  : Colors.grey.shade200,
+                  ? (isDark
+                      ? Colors.white.withValues(alpha: 0.11)
+                      : Colors.grey.shade300.withValues(alpha: 0.6))
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.09)
+                      : Colors.grey.shade200),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: floating ? 0.06 : 0.03),
+            color: Colors.black.withValues(
+              alpha: isDark ? 0.28 : (floating ? 0.06 : 0.03),
+            ),
             blurRadius: floating ? 16 : 10,
             spreadRadius: floating ? 0 : 0.5,
             offset: Offset.zero,

@@ -129,7 +129,7 @@ class _WorkoutHistoryDetailPageState extends State<WorkoutHistoryDetailPage> {
     final listBottomPadding = MediaQuery.paddingOf(context).bottom + 24;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F8),
+      backgroundColor: liftCanvasColor(context),
       body: SafeArea(
         bottom: false,
         child: Stack(

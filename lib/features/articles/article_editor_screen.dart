@@ -1122,8 +1122,7 @@ class _ArticleEditorScreenState extends State<ArticleEditorScreen> {
           onTap: () => _insertBlock('# Heading'),
         ),
         _EditorToolChip(
-          iconBuilder:
-              (accent) => Icon(Icons.subtitles_rounded, color: accent),
+          iconBuilder: (accent) => Icon(Icons.subtitles_rounded, color: accent),
           label: 'H2',
           onTap: () => _insertBlock('## Section title'),
         ),
@@ -1183,11 +1182,8 @@ class _ArticleEditorScreenState extends State<ArticleEditorScreen> {
         ),
         _EditorToolChip(
           iconBuilder:
-              (accent) => MynauiIcon(
-                MynauiGlyphs.closeCircle,
-                size: 15,
-                color: accent,
-              ),
+              (accent) =>
+                  MynauiIcon(MynauiGlyphs.closeCircle, size: 15, color: accent),
           label: 'Clear body',
           destructive: true,
           onTap: _clearContent,
@@ -1504,7 +1500,7 @@ class _ArticleEditorScreenState extends State<ArticleEditorScreen> {
     final mediaBottom = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F8),
+      backgroundColor: liftCanvasColor(context),
       body: Stack(
         clipBehavior: Clip.none,
         children: [

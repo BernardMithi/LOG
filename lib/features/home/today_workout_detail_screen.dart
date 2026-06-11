@@ -21,10 +21,7 @@ Widget _alignedWorkoutBackIcon({
   Color color = kLiftIslandOnFrosted,
   double size = 22,
 }) {
-  return Transform.translate(
-    offset: const Offset(1.0, 0),
-    child: MynauiIcon(MynauiGlyphs.altArrowLeft, color: color, size: size),
-  );
+  return MynauiIcon(MynauiGlyphs.altArrowLeft, color: color, size: size);
 }
 
 void _openExerciseDetail(
@@ -278,7 +275,7 @@ Exercises: ${widget.template.exercises.length}
     return Scaffold(
       extendBody: false,
       resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFFF7F7F8),
+      backgroundColor: liftCanvasColor(context),
       body: Stack(
         children: [
           ListView(
@@ -1078,7 +1075,7 @@ class _WorkoutReviewScreenState extends State<_WorkoutReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(

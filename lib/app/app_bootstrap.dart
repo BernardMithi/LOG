@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:lift/app/app_appearance.dart';
 import 'package:lift/features/articles/articles_repository.dart';
 import 'package:lift/shared/models/workout_history_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,10 +9,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LiftAppBootstrapData {
   const LiftAppBootstrapData({
     required this.workoutHistory,
+    required this.themeMode,
     this.userGenderRaw,
   });
 
   final List<WorkoutHistoryEntry> workoutHistory;
+  final ThemeMode themeMode;
   final String? userGenderRaw;
 }
 
@@ -26,6 +30,9 @@ Future<LiftAppBootstrapData> loadLiftAppBootstrapData() async {
     prefs.getString(_kWorkoutHistoryStorageKey),
   );
   final userGenderRaw = prefs.getString(_kUserGenderStorageKey);
+  final themeMode = liftThemeModeFromString(
+    prefs.getString(kLiftThemeModeStorageKey),
+  );
 
   try {
     await articlesWarmupFuture;
@@ -35,6 +42,7 @@ Future<LiftAppBootstrapData> loadLiftAppBootstrapData() async {
 
   return LiftAppBootstrapData(
     workoutHistory: workoutHistory,
+    themeMode: themeMode,
     userGenderRaw: userGenderRaw,
   );
 }

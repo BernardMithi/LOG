@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lift/shared/icons/mynaui_glyphs.dart';
 
 /// Renders an SVG from [assets/icons] ([MynauiGlyphs] paths).
 ///
@@ -24,7 +25,7 @@ class MynauiIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveColor = color ?? DefaultTextStyle.of(context).style.color;
-    return SvgPicture.asset(
+    final icon = SvgPicture.asset(
       assetPath,
       width: size,
       height: size,
@@ -35,5 +36,9 @@ class MynauiIcon extends StatelessWidget {
               : null,
       semanticsLabel: semanticLabel,
     );
+    if (assetPath == MynauiGlyphs.altArrowLeft) {
+      return Transform.translate(offset: const Offset(-2, 0), child: icon);
+    }
+    return icon;
   }
 }

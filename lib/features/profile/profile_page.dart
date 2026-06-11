@@ -170,7 +170,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final topBlurBandHeight = listTopPadding + 88.0;
 
     return Scaffold(
-      backgroundColor: _kProfileCanvas,
+      backgroundColor: liftCanvasColor(context, light: _kProfileCanvas),
       body: SafeArea(
         top: false,
         bottom: false,

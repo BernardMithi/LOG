@@ -47,7 +47,7 @@ class _MachineScanFlowScreenState extends State<MachineScanFlowScreen> {
       );
     }
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: liftCanvasColor(context, light: const Color(0xFFF8F8F8)),
       body: SafeArea(
         bottom: false,
         child: Stack(

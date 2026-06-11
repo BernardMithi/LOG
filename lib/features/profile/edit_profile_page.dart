@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lift/app/theme.dart';
 import 'package:lift/features/profile/profile_models.dart';
+import 'package:lift/shared/icons/mynaui_glyphs.dart';
+import 'package:lift/shared/icons/mynaui_icon.dart';
 import 'package:lift/shared/widgets/lift_action_button.dart';
 import 'package:lift/shared/widgets/lift_island_header.dart';
 import 'package:lift/shared/widgets/lift_pressable.dart';
@@ -157,7 +159,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final topBlurBandHeight = listTopPadding + 88.0;
 
     return Scaffold(
-      backgroundColor: _kEditProfileCanvas,
+      backgroundColor: liftCanvasColor(context, light: _kEditProfileCanvas),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -395,21 +397,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 title: 'Edit Profile',
                 leading: LiftIslandHeaderAction(
                   onTap: () => Navigator.of(context).maybePop(),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                  child: const MynauiIcon(
+                    MynauiGlyphs.altArrowLeft,
                     color: kLiftIslandOnFrosted,
-                    size: tokens.isApple ? 20 : 22,
+                    size: 22,
                   ),
                 ),
                 trailing: LiftIslandHeaderAction(
                   onTap: _save,
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      color: kLiftIslandOnFrosted,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  child: const MynauiIcon(
+                    MynauiGlyphs.checkCircle,
+                    color: kLiftIslandOnFrosted,
+                    size: 28,
+                    semanticLabel: 'Save',
                   ),
                 ),
               ),

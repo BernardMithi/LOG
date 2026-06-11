@@ -168,7 +168,8 @@ class _MachineScreenState extends State<MachineScreen> {
     return a.exerciseName == b.exerciseName &&
         a.weightKg == b.weightKg &&
         a.reps == b.reps &&
-        a.createdAt.millisecondsSinceEpoch == b.createdAt.millisecondsSinceEpoch;
+        a.createdAt.millisecondsSinceEpoch ==
+            b.createdAt.millisecondsSinceEpoch;
   }
 
   void _persistSessionSets() {
@@ -194,23 +195,11 @@ class _MachineScreenState extends State<MachineScreen> {
     return la.year == lb.year && la.month == lb.month && la.day == lb.day;
   }
 
-  List<
-    ({
-      DateTime at,
-      String exerciseName,
-      Widget row,
-    })
-  >
-  _todayDisplayRows(List<_PastSetLine> pastLines) {
+  List<({DateTime at, String exerciseName, Widget row})> _todayDisplayRows(
+    List<_PastSetLine> pastLines,
+  ) {
     final now = DateTime.now();
-    final out =
-        <
-          ({
-            DateTime at,
-            String exerciseName,
-            Widget row,
-          })
-        >[];
+    final out = <({DateTime at, String exerciseName, Widget row})>[];
 
     for (final line in pastLines) {
       if (!_isSameLocalCalendarDay(line.workoutCompletedAt, now)) continue;
@@ -277,11 +266,12 @@ class _MachineScreenState extends State<MachineScreen> {
   }
 
   Future<void> _openLogSetSheet() async {
-    final exercise = _activeExerciseName.trim().isNotEmpty
-        ? _activeExerciseName.trim()
-        : (widget.machine.supportedExercises.isNotEmpty
-            ? widget.machine.supportedExercises.first
-            : 'Set');
+    final exercise =
+        _activeExerciseName.trim().isNotEmpty
+            ? _activeExerciseName.trim()
+            : (widget.machine.supportedExercises.isNotEmpty
+                ? widget.machine.supportedExercises.first
+                : 'Set');
     final lastSame = _lastSetForExercise(exercise);
     final lastAny = _sets.isNotEmpty ? _sets.last : null;
     final last = lastSame ?? lastAny;
@@ -444,15 +434,14 @@ class _MachineScreenState extends State<MachineScreen> {
     final pastLines = _pastSetsForMachine(machine, _workoutHistory);
     final todayRows = _todayDisplayRows(pastLines);
     const gapAboveBottomIsland = 10.0;
+
     /// Same idea as [TodayWorkoutDetailScreen]: island floats above home indicator
     /// with a margin; scroll padding clears the frosted bar + gap.
     final safeBottom = MediaQuery.paddingOf(context).bottom;
     const islandBottomMargin = 12.0;
     final islandBottomOffset = safeBottom + islandBottomMargin;
     final listBottomPadding =
-        islandBottomOffset +
-        kLiftIslandHeaderHeight +
-        gapAboveBottomIsland;
+        islandBottomOffset + kLiftIslandHeaderHeight + gapAboveBottomIsland;
     const islandTop = 16.0;
     const heroBelowHeaderGap = 12.0;
     final topInset = MediaQuery.paddingOf(context).top;
@@ -460,7 +449,7 @@ class _MachineScreenState extends State<MachineScreen> {
     final listTopPadding =
         headerTop + kLiftIslandHeaderHeight + heroBelowHeaderGap;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: liftCanvasColor(context, light: const Color(0xFFF8F8F8)),
       body: SafeArea(
         bottom: false,
         top: false,
@@ -479,248 +468,251 @@ class _MachineScreenState extends State<MachineScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: kPagePadding),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: kPagePadding,
+                      ),
                       child: _MachineHero(machine: machine),
                     ),
                     const SizedBox(height: 12),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: kPagePadding),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: kPagePadding,
+                      ),
                       child: Column(
                         children: [
                           _MachineSupportedExercisesSection(
-                              exerciseNames: machine.supportedExercises,
-                              selectedExerciseName: _activeExerciseName,
-                              onPickExerciseForLogging:
-                                  widget.returnExerciseOnTap
-                                      ? null
-                                      : (name) => setState(
-                                        () => _activeExerciseName = name,
-                                      ),
-                              onSelectExercise:
-                                  widget.returnExerciseOnTap
-                                      ? (name) {
-                                        Navigator.of(
-                                          context,
-                                        ).pop<String>(name);
-                                      }
-                                      : null,
-                            ),
-                            const SizedBox(height: 12),
-                            SectionBoundary(
-                              borderRadius: kIosCornerRadius,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Last time',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      Text(
-                                        machine.lastUsedLabel,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (machine.lastExerciseName != null &&
-                                      machine.lastExerciseName!.trim().isNotEmpty) ...[
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      machine.lastExerciseName!.trim(),
+                            exerciseNames: machine.supportedExercises,
+                            selectedExerciseName: _activeExerciseName,
+                            onPickExerciseForLogging:
+                                widget.returnExerciseOnTap
+                                    ? null
+                                    : (name) => setState(
+                                      () => _activeExerciseName = name,
+                                    ),
+                            onSelectExercise:
+                                widget.returnExerciseOnTap
+                                    ? (name) {
+                                      Navigator.of(context).pop<String>(name);
+                                    }
+                                    : null,
+                          ),
+                          const SizedBox(height: 12),
+                          SectionBoundary(
+                            borderRadius: kIosCornerRadius,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Last time',
                                       style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey.shade800,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      machine.lastUsedLabel,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
                                       ),
                                     ),
                                   ],
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      _StatPill(
-                                        label: 'Top set',
-                                        value:
-                                            '${machine.lastWeightKg.toStringAsFixed(0)} kg x ${machine.lastReps}',
-                                      ),
-                                      const SizedBox(width: 8),
-                                      _StatPill(
-                                        label: 'Zone',
-                                        value: machine.zone,
-                                      ),
-                                    ],
+                                ),
+                                if (machine.lastExerciseName != null &&
+                                    machine.lastExerciseName!
+                                        .trim()
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    machine.lastExerciseName!.trim(),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade800,
+                                    ),
                                   ),
                                 ],
-                              ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    _StatPill(
+                                      label: 'Top set',
+                                      value:
+                                          '${machine.lastWeightKg.toStringAsFixed(0)} kg x ${machine.lastReps}',
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _StatPill(
+                                      label: 'Zone',
+                                      value: machine.zone,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 12),
-                            SectionBoundary(
-                              borderRadius: kIosCornerRadius,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Past sets',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      Text(
-                                        pastLines.isEmpty
-                                            ? '—'
-                                            : '${pastLines.length} logged',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  if (pastLines.isEmpty)
-                                    Text(
-                                      'When you finish workouts that use these movements, each set appears here.',
+                          ),
+                          const SizedBox(height: 12),
+                          SectionBoundary(
+                            borderRadius: kIosCornerRadius,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Past sets',
                                       style: TextStyle(
-                                        fontSize: 13,
-                                        height: 1.35,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      pastLines.isEmpty
+                                          ? '—'
+                                          : '${pastLines.length} logged',
+                                      style: TextStyle(
+                                        fontSize: 12,
                                         color: Colors.grey.shade600,
                                       ),
-                                    )
-                                  else
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        for (
-                                          var i = 0;
-                                          i < pastLines.length;
-                                          i++
-                                        ) ...[
-                                          if (i == 0 ||
-                                              pastLines[i].exerciseName !=
-                                                  pastLines[i - 1].exerciseName)
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                bottom: 6,
-                                                top: i == 0 ? 0 : 12,
-                                              ),
-                                              child: Text(
-                                                pastLines[i].exerciseName,
-                                                style: TextStyle(
-                                                  fontSize: 12.5,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: Colors.grey.shade700,
-                                                  letterSpacing: 0.2,
-                                                ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                if (pastLines.isEmpty)
+                                  Text(
+                                    'When you finish workouts that use these movements, each set appears here.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      height: 1.35,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  )
+                                else
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      for (
+                                        var i = 0;
+                                        i < pastLines.length;
+                                        i++
+                                      ) ...[
+                                        if (i == 0 ||
+                                            pastLines[i].exerciseName !=
+                                                pastLines[i - 1].exerciseName)
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              bottom: 6,
+                                              top: i == 0 ? 0 : 12,
+                                            ),
+                                            child: Text(
+                                              pastLines[i].exerciseName,
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.grey.shade700,
+                                                letterSpacing: 0.2,
                                               ),
                                             ),
-                                          _PastLoggedSetRow(line: pastLines[i]),
-                                          if (i != pastLines.length - 1)
-                                            const SizedBox(height: 8),
-                                        ],
+                                          ),
+                                        _PastLoggedSetRow(line: pastLines[i]),
+                                        if (i != pastLines.length - 1)
+                                          const SizedBox(height: 8),
                                       ],
-                                    ),
-                                ],
-                              ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (_restRemaining > 0) ...[
+                            _RestTimerStrip(
+                              remaining: _formatSeconds(_restRemaining),
+                              onAddThirty: () => _adjustRest(30),
+                              onSkip: () => setState(() => _restRemaining = 0),
                             ),
                             const SizedBox(height: 12),
-                            if (_restRemaining > 0) ...[
-                              _RestTimerStrip(
-                                remaining: _formatSeconds(_restRemaining),
-                                onAddThirty: () => _adjustRest(30),
-                                onSkip:
-                                    () => setState(() => _restRemaining = 0),
-                              ),
-                              const SizedBox(height: 12),
-                            ],
-                            SectionBoundary(
-                              borderRadius: kIosCornerRadius,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Today',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                          ],
+                          SectionBoundary(
+                            borderRadius: kIosCornerRadius,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Today',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
                                       ),
-                                      Text(
-                                        '${todayRows.length} set${todayRows.length == 1 ? '' : 's'} logged',
+                                    ),
+                                    Text(
+                                      '${todayRows.length} set${todayRows.length == 1 ? '' : 's'} logged',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                if (todayRows.isEmpty)
+                                  SizedBox(
+                                    height: 180,
+                                    child: Center(
+                                      child: Text(
+                                        machine.supportedExercises.isEmpty
+                                            ? 'No sets yet.\nTap Log Set to start.'
+                                            : 'No sets yet.\nPick a movement above, then tap Log Set.',
+                                        textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: 12,
                                           color: Colors.grey.shade600,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  if (todayRows.isEmpty)
-                                    SizedBox(
-                                      height: 180,
-                                      child: Center(
-                                        child: Text(
-                                          machine.supportedExercises.isEmpty
-                                              ? 'No sets yet.\nTap Log Set to start.'
-                                              : 'No sets yet.\nPick a movement above, then tap Log Set.',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        for (
-                                          var i = 0;
-                                          i < todayRows.length;
-                                          i++
-                                        ) ...[
-                                          if (i == 0 ||
-                                              todayRows[i].exerciseName !=
-                                                  todayRows[i - 1].exerciseName)
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                bottom: 6,
-                                                top: i == 0 ? 0 : 12,
-                                              ),
-                                              child: Text(
-                                                todayRows[i].exerciseName,
-                                                style: TextStyle(
-                                                  fontSize: 12.5,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: Colors.grey.shade700,
-                                                  letterSpacing: 0.2,
-                                                ),
+                                    ),
+                                  )
+                                else
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      for (
+                                        var i = 0;
+                                        i < todayRows.length;
+                                        i++
+                                      ) ...[
+                                        if (i == 0 ||
+                                            todayRows[i].exerciseName !=
+                                                todayRows[i - 1].exerciseName)
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              bottom: 6,
+                                              top: i == 0 ? 0 : 12,
+                                            ),
+                                            child: Text(
+                                              todayRows[i].exerciseName,
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.grey.shade700,
+                                                letterSpacing: 0.2,
                                               ),
                                             ),
-                                          todayRows[i].row,
-                                          if (i != todayRows.length - 1)
-                                            const SizedBox(height: 8),
-                                        ],
+                                          ),
+                                        todayRows[i].row,
+                                        if (i != todayRows.length - 1)
+                                          const SizedBox(height: 8),
                                       ],
-                                    ),
-                                ],
-                              ),
+                                    ],
+                                  ),
+                              ],
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -1089,9 +1081,7 @@ class _PastLoggedSetRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final row = line.row;
     final label =
-        row.label.trim().isNotEmpty
-            ? row.label
-            : '${line.setIndexInExercise}';
+        row.label.trim().isNotEmpty ? row.label : '${line.setIndexInExercise}';
 
     return Container(
       padding: const EdgeInsets.all(12),

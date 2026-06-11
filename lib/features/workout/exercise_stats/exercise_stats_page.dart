@@ -37,7 +37,7 @@ class _ExerciseStatsPageState extends State<ExerciseStatsPage> {
     final listTopPadding = topInset + islandTop;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F8),
+      backgroundColor: liftCanvasColor(context),
       body: SafeArea(
         top: false,
         bottom: false,

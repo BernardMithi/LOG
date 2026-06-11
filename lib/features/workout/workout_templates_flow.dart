@@ -109,10 +109,7 @@ Widget _alignedWorkoutBackIcon({
   Color color = kLiftIslandOnFrosted,
   double size = 22,
 }) {
-  return Transform.translate(
-    offset: const Offset(1.0, 0),
-    child: MynauiIcon(MynauiGlyphs.altArrowLeft, color: color, size: size),
-  );
+  return MynauiIcon(MynauiGlyphs.altArrowLeft, color: color, size: size);
 }
 
 class _WorkoutSummaryMuscleEntry {
@@ -1981,8 +1978,14 @@ Volume: ${_formatVolume(summary.totalVolumeKg)}$workedMusclesLine
   }) {
     final standaloneBottomPadding = math.max(12.0, bottomSafePadding - 10.0);
     return switch (mode) {
-      _WorkoutTemplatesMode.overview || _WorkoutTemplatesMode.list =>
+      _WorkoutTemplatesMode.overview =>
         _hasBottomNavigationIsland ? 104.0 : standaloneBottomPadding,
+      _WorkoutTemplatesMode.list =>
+        _hasBottomNavigationIsland
+            ? kShellFloatingNavBottomInset +
+                kShellFloatingNavBarHeight +
+                _kListCreateActionsVerticalGap
+            : standaloneBottomPadding,
       // Detail uses a floating Start bar outside this padding; a non-zero bottom
       // inset leaves an empty band that shows the shell's white behind the bar.
       _WorkoutTemplatesMode.detail => showFloatingDetailAction ? 0.0 : 24.0,
@@ -3377,7 +3380,7 @@ class _TemplateListRow extends StatelessWidget {
   final bool expandVertical;
 
   static const double _kHeroSize = 78.0;
-  static const double _kHeroSizeCompact = 70.0;
+  static const double _kHeroSizeCompact = 62.0;
 
   /// List rows in an [Expanded] slot can grow taller than the default hero;
   /// caps avoid oversized thumbs while using space that would otherwise sit
@@ -3397,19 +3400,67 @@ class _TemplateListRow extends StatelessWidget {
     final chipGap = compact ? 7.0 : 8.0;
     final heroRadiusBase = compact ? 12.0 : kIosMediaRadius;
 
-    Widget cardFor(double heroDim) {
+    Widget cardFor(
+      double heroDim, {
+      EdgeInsets? padding,
+      double? titleGapOverride,
+      double? metaGapOverride,
+      bool fitTextToHeight = false,
+    }) {
       final iconError = math
           .min(iconErrorBase, heroDim * 0.38)
           .clamp(18.0, 28.0);
       final heroRadius = math
           .min(heroRadiusBase, heroDim * 0.22)
           .clamp(8.0, 16.0);
+      final textColumn = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            template.name.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.w700),
+          ),
+          SizedBox(height: titleGapOverride ?? gapTitle),
+          Text(
+            template.focusTags.join(' • '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: bodySize,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: metaGapOverride ?? gapMeta),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${template.exercises.length} exercises',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: bodySize,
+                  ),
+                ),
+              ),
+              SizedBox(width: chipGap),
+              _DurationChip(label: durationLabel, compact: compact),
+            ],
+          ),
+        ],
+      );
       return SectionBoundary(
         borderRadius: kIosCornerRadius,
         padding:
-            compact
+            padding ??
+            (compact
                 ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-                : const EdgeInsets.all(12),
+                : const EdgeInsets.all(12)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -3438,46 +3489,24 @@ class _TemplateListRow extends StatelessWidget {
             ),
             SizedBox(width: gapAfterHero),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    template.name.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: titleSize,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: gapTitle),
-                  Text(
-                    template.focusTags.join(' • '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: bodySize,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: gapMeta),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${template.exercises.length} exercises',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: bodySize,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: chipGap),
-                      _DurationChip(label: durationLabel, compact: compact),
-                    ],
-                  ),
-                ],
-              ),
+              child:
+                  fitTextToHeight
+                      ? LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Align(
+                            alignment: Alignment.centerLeft,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: SizedBox(
+                                width: constraints.maxWidth,
+                                child: textColumn,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                      : textColumn,
             ),
             SizedBox(width: compact ? 4 : 6),
             Icon(
@@ -3496,19 +3525,32 @@ class _TemplateListRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(kIosCornerRadius),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final sectionVPad = compact ? 16.0 : 24.0;
-            final heroMin = compact ? 52.0 : 62.0;
+            final availableHeight = constraints.maxHeight;
+            final verticalPadding = compact ? 4.0 : 12.0;
+            final sectionVPad = verticalPadding * 2;
+            final heroMin = compact ? _kHeroSizeCompact : 62.0;
             final heroDim =
                 math
                     .min(
                       _kHeroCapExpanded,
-                      math.max(heroMin, constraints.maxHeight - sectionVPad),
+                      compact
+                          ? heroMin
+                          : math.max(heroMin, availableHeight - sectionVPad),
                     )
                     .toDouble();
             return SizedBox(
               width: constraints.maxWidth,
-              height: constraints.maxHeight,
-              child: cardFor(heroDim),
+              height: availableHeight,
+              child: cardFor(
+                heroDim,
+                padding: EdgeInsets.symmetric(
+                  horizontal: compact ? 12 : 12,
+                  vertical: verticalPadding,
+                ),
+                titleGapOverride: compact ? 3 : null,
+                metaGapOverride: compact ? 4 : null,
+                fitTextToHeight: compact,
+              ),
             );
           },
         ),
@@ -4271,11 +4313,13 @@ class _CreateActionsRow extends StatelessWidget {
   /// "Create template" control (same action as the standalone +).
   final bool hideEmptyWorkout;
 
-  static ButtonStyle _pillStyle() {
+  static ButtonStyle _pillStyle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final foreground = isDark ? Colors.white : Colors.black;
     return OutlinedButton.styleFrom(
-      foregroundColor: Colors.black,
-      backgroundColor: Colors.white,
-      side: const BorderSide(color: Colors.black, width: 1),
+      foregroundColor: foreground,
+      backgroundColor: isDark ? const Color(0xFF15171B) : Colors.white,
+      side: BorderSide(color: foreground, width: 1),
       minimumSize: Size.zero,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
@@ -4295,7 +4339,7 @@ class _CreateActionsRow extends StatelessWidget {
         child: SizedBox(
           height: pillHeight,
           child: OutlinedButton(
-            style: _pillStyle(),
+            style: _pillStyle(context),
             onPressed: onCreate,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -4322,7 +4366,7 @@ class _CreateActionsRow extends StatelessWidget {
           child: SizedBox(
             height: pillHeight,
             child: OutlinedButton(
-              style: _pillStyle().copyWith(
+              style: _pillStyle(context).copyWith(
                 padding: const WidgetStatePropertyAll(EdgeInsets.zero),
               ),
               onPressed: onEmptyWorkout,

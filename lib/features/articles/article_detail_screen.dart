@@ -299,13 +299,16 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   Widget build(BuildContext context) {
     final article = _article;
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: kAccentColor)),
+      return Scaffold(
+        backgroundColor: liftCanvasColor(context),
+        body: const Center(
+          child: CircularProgressIndicator(color: kAccentColor),
+        ),
       );
     }
     if (article == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF7F7F8),
+        backgroundColor: liftCanvasColor(context),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -349,7 +352,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     final topBlurBandHeight = listTopPadding + 88.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F8),
+      backgroundColor: liftCanvasColor(context),
       body: SafeArea(
         top: false,
         bottom: false,
